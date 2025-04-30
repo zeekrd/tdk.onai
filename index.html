@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>onAI.uide</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #8E2DE2, #FF6EC4);
+      color: #fff;
+    }
+    .top-left-logo {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      width: 80px;
+      height: auto;
+      z-index: 1000;
+    }
+    header {
+      padding: 20px;
+      text-align: center;
+    }
+    nav {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .button-group {
+      display: flex;
+      gap: 15px;
+    }
+    .subject-btn {
+      background-color: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .subject-btn.active,
+    .subject-btn:hover {
+      background-color: rgba(255, 255, 255, 0.4);
+    }
+    .question-count {
+      margin-top: 5px;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+    .flashcards {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+      padding: 20px;
+    }
+    .card {
+      perspective: 1000px;
+      width: 300px;
+      height: 200px;
+      margin: 10px;
+    }
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+      cursor: pointer;
+    }
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+    .card-front, .card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      background-color: rgba(0, 0, 0, 0.3);
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card-back {
+      transform: rotateY(180deg);
+      flex-direction: column;
+    }
+    .bot-link {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255,255,255,0.2);
+      padding: 10px 15px;
+      border-radius: 10px;
+      color: white;
+      text-decoration: none;
+      transition: background-color 0.3s;
+    }
+    .bot-link:hover {
+      background: rgba(255,255,255,0.4);
+    }
+  </style>
+</head>
+<body>
+  <!-- Укажи правильный путь к логотипу -->
+  <img src="your-logo-path.png" alt="Логотип" class="top-left-logo">
+
+  <a href="https://onaiuide-bot.tg.pulse.is/" class="bot-link" target="_blank">Наш чат бот</a>
+
+  <header>
+    <h1>Флэш карточки от onAI (Uide)</h1>
+  </header>
+
+  <nav>
+    <div class="button-group">
+      <button class="subject-btn" onclick="selectSubject('math', this)">Математика</button>
+      <button class="subject-btn" onclick="selectSubject('physics', this)">Физика</button>
+      <button class="subject-btn" onclick="selectSubject('biology', this)">Биология</button>
+    </div>
+    <div class="question-count" id="questionCountText">Всего 10 вопросов</div>
+  </nav>
+
+  <div class="flashcards" id="cards"></div>
+
+  <script>
+    const subjects = {
+      math: [
+        { q: 'Сколько будет 7 × 6?', a: '42', e: 'Умножение 7 на 6 даёт 42.' },
+        { q: 'Чему равен квадрат числа 9?', a: '81', e: '9 × 9 = 81.' },
+        { q: 'Сколько градусов в прямом угле?', a: '90', e: 'Прямой угол всегда равен 90°.' },
+        { q: 'Как называется число без делителей, кроме 1 и самого себя?', a: 'Простое', e: 'Это определение простого числа.' },
+        { q: 'Чему равен корень из 64?', a: '8', e: '8 × 8 = 64, значит корень — 8.' },
+        { q: 'Что такое периметр квадрата со стороной 4 см?', a: '16 см', e: '4 + 4 + 4 + 4 = 16 см.' },
+        { q: 'Что больше: 3/4 или 2/3?', a: '3/4', e: '3/4 = 0.75, 2/3 ≈ 0.666.' },
+        { q: 'Как называется результат деления?', a: 'Частное', e: 'Результат деления — частное.' },
+        { q: 'Сколько нулей в миллионе?', a: '6', e: '1,000,000 — шесть нулей.' },
+        { q: 'Чему равен логарифм 100 по основанию 10?', a: '2', e: '10^2 = 100.' }
+      ],
+      physics: [
+        { q: 'Чему равна скорость света?', a: '≈ 300 000 км/с', e: 'Скорость света в вакууме примерно 299 792 км/с.' },
+        { q: 'Кто открыл закон тяготения?', a: 'Исаак Ньютон', e: 'Он сформулировал закон всемирного тяготения.' },
+        { q: 'Какая единица измеряет силу?', a: 'Ньютон', e: 'Сила измеряется в ньютонах (Н).' },
+        { q: 'Что показывает амперметр?', a: 'Силу тока', e: 'Амперметр измеряет силу электрического тока.' },
+        { q: 'Как называется закон сохранения энергии?', a: 'Закон сохранения энергии', e: 'Энергия не возникает и не исчезает, а переходит из одной формы в другую.' },
+        { q: 'Чему равен 1 ньютон?', a: '1 кг·м/с²', e: 'Это производная единица в СИ.' },
+        { q: 'Какой прибор измеряет давление?', a: 'Барометр', e: 'Барометр измеряет атмосферное давление.' },
+        { q: 'Какой тип волн у радиоволн?', a: 'Электромагнитные', e: 'Радиоволны — это электромагнитные волны.' },
+        { q: 'Что такое инерция?', a: 'Свойство сохранять состояние покоя или движения', e: 'Это одно из основных свойств тел.' },
+        { q: 'Какой ученый предложил E=mc²?', a: 'Альберт Эйнштейн', e: 'Это уравнение из теории относительности.' }
+      ],
+      biology: [
+        { q: 'Какой орган отвечает за перекачивание крови?', a: 'Сердце', e: 'Сердце — главный насос кровеносной системы.' },
+        { q: 'Какой орган человека фильтрует кровь?', a: 'Почки', e: 'Почки удаляют из крови лишнюю жидкость и отходы.' },
+        { q: 'Какая молекула несет генетическую информацию?', a: 'ДНК', e: 'ДНК содержит наследственный код.' },
+        { q: 'Какой орган контролирует тело и разум?', a: 'Мозг', e: 'Мозг управляет всеми функциями тела.' },
+        { q: 'Как называются строительные блоки тела?', a: 'Клетки', e: 'Клетки — это основа всех живых организмов.' },
+        { q: 'Где происходит фотосинтез?', a: 'В листьях растений', e: 'Хлорофилл в листьях помогает преобразовывать свет.' },
+        { q: 'Какая система отвечает за дыхание?', a: 'Дыхательная', e: 'Включает нос, трахею и лёгкие.' },
+        { q: 'Сколько хромосом у человека?', a: '46', e: '23 пары хромосом = 46.' },
+        { q: 'Какой орган вырабатывает инсулин?', a: 'Поджелудочная железа', e: 'Она регулирует уровень сахара в крови.' },
+        { q: 'Что делает иммунная система?', a: 'Защищает от болезней', e: 'Иммунитет борется с инфекциями.' }
+      ]
+    };
+
+    let currentSubject = 'math';
+
+    function selectSubject(subject, btn) {
+      currentSubject = subject;
+      document.querySelectorAll('.subject-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderCards();
+    }
+
+    function renderCards() {
+      const cardContainer = document.getElementById('cards');
+      const questionCountText = document.getElementById('questionCountText');
+      cardContainer.innerHTML = '';
+
+      const cards = subjects[currentSubject];
+      questionCountText.innerText = `Всего ${cards.length} вопросов`;
+
+      cards.forEach((card) => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <div class="card-inner" onclick="this.parentElement.classList.toggle('flipped')">
+            <div class="card-front"><h3>${card.q}</h3></div>
+            <div class="card-back"><p><strong>Ответ:</strong> ${card.a}</p><p><em>${card.e}</em></p></div>
+          </div>`;
+        cardContainer.appendChild(div);
+      });
+    }
+
+    window.onload = () => {
+      renderCards();
+      document.querySelectorAll('.subject-btn').forEach(btn => {
+        if (btn.textContent === 'Математика') btn.classList.add('active');
+      });
+    };
+  </script>
+</body>
+</html>
+
+
+
